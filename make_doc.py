@@ -1,4 +1,5 @@
 import os
+import math
 import docx
 from docx.shared import Inches
 from docx.oxml.ns import nsdecls
@@ -18,8 +19,6 @@ student_list_file = "./all_students.txt"
 with open(student_list_file, "r") as f:
     all_students = [line.strip() for line in f]
 
-print(all_students[0])
-
 # Create a new Word document
 doc = docx.Document()
 
@@ -33,39 +32,39 @@ for filename in os.listdir(input_dir):
         name = f"{first_name} {last_name}"
         image_dict[name] = os.path.join(input_dir, filename)
 
-# Create a 6x6 table for each group of 36 students
-for i in range(0, len(all_students), 36):
-    table = doc.add_table(rows=6, cols=6)
+# Create a single table of students; allow word to flow the rows
+num_students = len(all_students)
+num_cols = 5
+num_rows = math.ceil(num_students / num_cols)
+print(f"students: {num_students}, cols: {num_cols}, rows: {num_rows}")
 
+table = doc.add_table(rows=num_rows, cols=num_cols)
+
+for i in range(0, num_students):
     # Add an image and a name to each cell
-    for j in range(36):
-        if i + j < len(all_students):
-            # Get the student's name
-            name = all_students[i + j]
+    if i < num_students:
+        # Get the student's name
+        name = all_students[i]
 
-            # Get the image path or placeholder image if none exists
-            image_path = image_dict.get(name, placeholder_image)
+        # Get the image path or placeholder image if none exists
+        image_path = image_dict.get(name, placeholder_image)
 
-            # Add the image to the cell
-            cell = table.cell(j // 6, j % 6)
-            paragraph = cell.paragraphs[0]
-            paragraph.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
-            run = paragraph.add_run()
-            try:
-                run.add_picture(image_path, width=docx.shared.Inches(1))
-            except Exception as e:
-                print(f"Error adding image: {image_path}")
-                print(e)
+        # Add the image to the cell
+        cell = table.cell(i // num_cols, i % num_cols)
+        paragraph = cell.paragraphs[0]
+        paragraph.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+        run = paragraph.add_run()
+        try:
+            run.add_picture(image_path, width=docx.shared.Inches(1))
+        except Exception as e:
+            print(f"Error adding image: {image_path}")
+            print(e)
 
-            # Add the name to the cell
-            paragraph = cell.add_paragraph()
-            paragraph.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
-            run = paragraph.add_run()
-            run.text = name
-
-    # Add a page break after each table except the last one
-    if i + 36 < len(all_students):
-        doc.add_page_break()
+        # Add the name to the cell
+        paragraph = cell.add_paragraph()
+        paragraph.alignment = docx.enum.text.WD_ALIGN_PARAGRAPH.CENTER
+        run = paragraph.add_run()
+        run.text = name
 
 # Save the document
 doc.save(output_docx)
