@@ -6,3 +6,5 @@ Issues:
 - Method seems about 70% reliable, requiring manual corrections.
 - Doesn't currently account for formats other than JPG / JPEG.
 - Hard-coded paths.
+- Doesn't correctly parse filenames like `smith_john.jpg`. Requires trailing underbar.
+
